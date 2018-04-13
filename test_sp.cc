@@ -1,5 +1,6 @@
 #include "shared_ptr.hpp"
 #include <iostream>
+#include <memory>
 
 struct Data {
   Data(int v): d(v) {}
@@ -25,7 +26,29 @@ void copy_test()
   assert (sp.strong_ref_count() == 1);
 }
 
+void base_der_test()
+{
+  struct Base
+  {
+    Base() { std::cout << "Base cons" << std::endl; }
+    virtual void call() = 0;
+    virtual ~Base() { std::cout << "Base dest" << std::endl; }
+  };
+
+  struct Derived: public Base
+  {
+    Derived(int): Base() { std::cout << "Derived cons" << std::endl; }
+    void call() override { std::cout << "Derived::call" << std::endl; }
+    ~Derived() { std::cout << "Derived dest" << std::endl; }
+  };
+
+  arnml::shared_ptr<Derived> ptr{Derived{42}};
+  Base* bp = ptr.get();
+  bp->call();
+}
+
 int main() {
-  copy_test();
+  //copy_test();
+  base_der_test();
   return 0;
 }
