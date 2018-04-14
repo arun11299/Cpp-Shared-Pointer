@@ -1,7 +1,7 @@
 #include "shared_ptr.hpp"
 #include <iostream>
 #include <memory>
-
+/*
 struct Data {
   Data(int v): d(v) {}
   int d = 0;
@@ -46,9 +46,18 @@ void base_der_test()
   Base* bp = ptr.get();
   bp->call();
 }
+*/
+
+void cyclic_ref_test()
+{
+  struct A {
+    arnml::shared_ptr<A> ptr;
+  };
+}
 
 int main() {
   //copy_test();
-  base_der_test();
+  //base_der_test();
+  cyclic_ref_test();
   return 0;
 }

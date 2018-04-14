@@ -183,6 +183,11 @@ void construct_wrapped_type(
     control_block_base<T>* cb,
     Args&&... args)
 {
+  static_assert(
+      std::is_constructible<T, Args...>::value ||
+      std::is_convertible<T, Args...>::value,
+      "Type T cannot be constructed or convertible with provided Args...");
+
   new (&cb->value_buf) T{std::forward<Args>(args)...};
   cb->add_ref();
 }
@@ -201,8 +206,8 @@ public:
    * Constructor for default constructible types.
    */
   template <typename Allocator=std::allocator<T>>
-  explicit shared_ptr()
-    : shared_ptr(Allocator{})
+  explicit shared_ptr(Allocator&& a = Allocator{})
+    : shared_ptr(std::forward<Allocator>(a))
   {
     //...
   }
@@ -214,8 +219,9 @@ public:
   template <typename... Args,
             typename Allocator=std::allocator<T>,
             typename Cond = std::enable_if_t<
-                              std::is_constructible<T, Args...>::value ||
-                              std::is_convertible<T, Args...>::value>
+                              !std::is_same<std::remove_reference_t<T>, shared_ptr>::value ||
+                              arnml::detail::is_allocator<Allocator>::value
+                            >
            >
   explicit shared_ptr(Args&&... args)
     : shared_ptr(Allocator{}, std::forward<Args>(args)...)
@@ -233,8 +239,8 @@ public:
    */
   template <typename... Args, typename Allocator=std::allocator<T>,
            typename Cond = std::enable_if_t<
-                              std::is_constructible<T, Args...>::value ||
-                              std::is_convertible<T, Args...>::value>>
+                              !std::is_same<std::remove_reference_t<T>, shared_ptr>::value ||
+                              arnml::detail::is_allocator<Allocator>::value>>
   explicit shared_ptr(Allocator&& alloc, Args&&... args);
     
 
