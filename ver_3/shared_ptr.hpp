@@ -203,43 +203,35 @@ class shared_ptr
 {
 public:
   /**
-   * Constructor for default constructible types.
-   */
-  template <typename Allocator=std::allocator<T>>
-  explicit shared_ptr(Allocator&& a = Allocator{})
-    : shared_ptr(std::forward<Allocator>(a))
-  {
-    //...
-  }
-
-  /**
    * Forwarding constructor.
    * Create a shared pointer from the Args.
    */
-  template <typename... Args,
+  template <typename First, typename... Args,
             typename Allocator=std::allocator<T>,
             typename Cond = std::enable_if_t<
-                              !std::is_same<std::remove_reference_t<T>, shared_ptr>::value ||
-                              arnml::detail::is_allocator<Allocator>::value
+                              !std::is_same<std::remove_reference_t<T>, shared_ptr>::value &&
+                              arnml::detail::is_allocator<Allocator>::value &&
+                              !arnml::detail::is_allocator<First>::value
                             >
            >
-  explicit shared_ptr(Args&&... args)
-    : shared_ptr(Allocator{}, std::forward<Args>(args)...)
+  explicit shared_ptr(First&& f, Args&&... args)
+    : shared_ptr(Allocator{}, std::forward<First>(f), std::forward<Args>(args)...)
   {
     //....
   }
 
   /**
+   * Constructor for default constructible types.
    */
   template <typename Allocator=std::allocator<T>,
             typename = std::enable_if_t<detail::is_allocator<Allocator>::value>>
-  explicit shared_ptr(Allocator&& alloc);
+  explicit shared_ptr(Allocator&& alloc=Allocator{});
 
   /**
    */
   template <typename... Args, typename Allocator=std::allocator<T>,
            typename Cond = std::enable_if_t<
-                              !std::is_same<std::remove_reference_t<T>, shared_ptr>::value ||
+                              !std::is_same<std::remove_reference_t<T>, shared_ptr>::value  &&
                               arnml::detail::is_allocator<Allocator>::value>>
   explicit shared_ptr(Allocator&& alloc, Args&&... args);
     
