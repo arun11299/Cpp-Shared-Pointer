@@ -174,6 +174,19 @@ control_block_base<T>::create(
   return static_cast<control_block_base<T>*>(ctrl_blk);
 }
 
+/**
+ * Default construct the object in its aligned storage area.
+ */
+template <typename T>
+void construct_wrapped_type(control_block_base<T>* cb)
+{
+  static_assert(
+      std::is_default_constructible<T>::value,
+      "Type T is not default constructible");
+
+  new (&cb->value_buf) T;
+  cb->add_ref();
+}
 
 /**
  * Construct the object in its aligned storage area.
@@ -203,6 +216,14 @@ class shared_ptr
 {
 public:
   /**
+   * The default constructor.
+   */
+  explicit shared_ptr()
+  {
+    //...
+  }
+
+  /**
    * Forwarding constructor.
    * Create a shared pointer from the Args.
    */
@@ -224,7 +245,8 @@ public:
    * Constructor for default constructible types.
    */
   template <typename Allocator=std::allocator<T>,
-            typename = std::enable_if_t<detail::is_allocator<Allocator>::value>>
+            typename = std::enable_if_t<detail::is_allocator<Allocator>::value>
+           >
   explicit shared_ptr(Allocator&& alloc=Allocator{});
 
   /**
@@ -269,6 +291,23 @@ public:
 
     ctrl_blk_ = other.ctrl_blk_;
     ctrl_blk_->add_ref();
+
+    return *this;
+  }
+
+  /**
+   * Move Assignment
+   *
+   * NOTE: Self move not supported.
+   */
+  shared_ptr& operator=(shared_ptr&& other)
+  {
+    assert (other.ctrl_blk_ != ctrl_blk_);
+    this->~shared_ptr();
+    ctrl_blk_ = other.ctrl_blk_;
+    other.ctrl_blk_ = nullptr;
+
+    return *this;
   }
 
   /**

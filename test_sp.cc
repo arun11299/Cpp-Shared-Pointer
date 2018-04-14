@@ -42,7 +42,7 @@ void base_der_test()
     ~Derived() { std::cout << "Derived dest" << std::endl; }
   };
 
-  arnml::shared_ptr<Derived> ptr{Derived{42}};
+  arnml::shared_ptr<Derived> ptr{42};
   Base* bp = ptr.get();
   bp->call();
 }
@@ -50,8 +50,12 @@ void base_der_test()
 void cyclic_ref_test()
 {
   struct A {
+    A(int) {}
     arnml::shared_ptr<A> ptr;
   };
+
+  arnml::shared_ptr<A> a1{0};
+  a1->ptr = a1;
 }
 
 int main() {
