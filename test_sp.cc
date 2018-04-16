@@ -108,14 +108,20 @@ void with_std()
   std::cout << sp_str->c_str() << std::endl;
 }
 
+void move_test()
+{
+  arnml::shared_ptr<std::string> sp_str{"Arun"};
+  auto new_sp = std::move(sp_str);
+  assert (new_sp.strong_ref_count() == 1);
+}
+
 int main() {
-  /*
   copy_test();
   base_der_test();
   cyclic_ref_test();
   weak_ptr_test();
   cyclic_dependency_with_weak_ptr();
-  */
   with_std();
+  move_test();
   return 0;
 }
