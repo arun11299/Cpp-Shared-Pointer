@@ -652,6 +652,7 @@ public:
    */
   shared_ptr<T, RCP> lock()
   {
+    if (!ctrl_blk_ || !ctrl_blk_->get_ref()) return 0;
     return shared_ptr<T, RCP>{ctrl_blk_};
   }
 
